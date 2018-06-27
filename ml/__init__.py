@@ -12,6 +12,10 @@ def setup_ml_process_pool(app):
 
 
 client = MongoClient()
+
+"""
+NEED TO REMOVE FILEPATHS AND PULL FROM BLOB STORAGE
+"""
 lda_model = ldamodel.LdaModel.load('lda_filepath') 
 dictionary = Dictionary().load('dict_filepath')
 index = nms.init(method = 'hnsw', space = 'cosinesimil')
