@@ -31,12 +31,7 @@ def semantic_search(*words):
     results, distances = nn_lookup_vector(docs_topic_distribution)
     return results
 
-def nn_lookup(document_id):
-    curr_vector = topicCol.find_one({ "_id" : document_id})
-    return nn_lookup_vector(curr_vector)
-
-
-def nn_lookup_vector(doc_topic_vector):
+def nn_lookup(doc_topic_vector):
     nearest_n, distances = index.knnQuery(doc_topic_vector, 20)
     result = []
     for unique_number in nearest_n:
