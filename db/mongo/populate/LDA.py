@@ -11,6 +11,7 @@ from gensim import corpora
 from gensim.corpora import Dictionary
 from gensim.models import ldamodel
 from nltk.corpus import stopwords
+import os
 import pyLDAvis 
 import pyLDAvis.gensim
 import pymongo
@@ -41,8 +42,8 @@ class LDAModelMaker():
         """
         
         emailClient = MongoClient()
-        self.db = emailClient['EnronEmailData']
-        self.col = self.db.emails
+        self.db = emailClient[os.getenv('email_database_name')]
+        self.col = self.db[os.getenv('email_collection_name')]
         self.texts = []
         self.stopWords = set(stopwords.words('english'))
         self.dictionary = Dictionary()

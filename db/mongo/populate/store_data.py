@@ -31,8 +31,8 @@ class EmailDataStorage():
         
         """
         emailClient = MongoClient()
-        self.db = emailClient['JohnEnronEmailData']
-        self.emails = self.db.emails
+        self.db = emailClient[os.getenv('email_database_name')]
+        self.emails = self.db[os.getenv('email_collection_name')]
         self.currPath = filepath
     
 
@@ -47,6 +47,7 @@ class EmailDataStorage():
         num_row = 0
         num_added = 0
         files = os.listdir(self.currPath)
+        files = [f for f in files if f.endswith('.csv')]
         csv.field_size_limit(sys.maxsize)
         for email_file in files:
             email_file = self.currPath + "/" + email_file
@@ -130,9 +131,9 @@ class EmailDataStorage():
         else:
             index = 4
         try: 
-            x = row[index].replace("frozenset({","[").replace("})","]")
-            x = eval(x)
-            return x
+            list_emails = "[" + row[index].lstrip("frozenset({","[").rstrip("})","]") + "]"
+            list_emails = eval(list_emails)
+            return list_emails
         except Exception as e:
             return row[index + 3]
     
