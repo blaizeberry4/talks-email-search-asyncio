@@ -8,7 +8,6 @@ Created on Fri Apr 20 11:28:42 2018
 import os
 import csv
 import io
-import re
 from pymongo import MongoClient
 import sys
 import pymongo
@@ -31,8 +30,8 @@ class EmailDataStorage():
         
         """
         emailClient = MongoClient()
-        self.db = emailClient[os.getenv('email_database_name')]
-        self.emails = self.db[os.getenv('email_collection_name')]
+        self.db = emailClient[os.getenv('EMAIL_DATABASE_NAME')]
+        self.emails = self.db[os.getenv('EMAIL_COLLECTION_NAME')]
         self.currPath = filepath
     
 
@@ -46,8 +45,7 @@ class EmailDataStorage():
         """
         num_row = 0
         num_added = 0
-        files = os.listdir(self.currPath)
-        files = [f for f in files if f.endswith('.csv')]
+        files = [f for f in os.listdir(self.currPath) if f.endswith('.csv')]
         csv.field_size_limit(sys.maxsize)
         for email_file in files:
             email_file = self.currPath + "/" + email_file
@@ -152,8 +150,8 @@ class EmailDataStorage():
         return cleaned_content
         
 
-#client = MongoClient()
-#client.drop_database('EnronEmailData')
+client = MongoClient()
+client.drop_database('ThirdEnronEmailData')
 
 if __name__ == "__main__":
     if not len(sys.argv) > 1:
