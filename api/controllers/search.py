@@ -29,7 +29,7 @@ async def semantic_search(request):
     # Semantic search is a costly CPU task, so run it asynchronously
     # in a process pool executor (pool of separate CPUs so we don't block
     # the event loop and can process multiple requests concurrently)
-    neighbors = await request.app.loop.run_in_executor(
+    neighbors, distances = await request.app.loop.run_in_executor(
         request.app.process_executor,
         # AbstractEventLoop.run_in_executor does not allow for a function
         # call with arguments natively so bind arguments to the function
@@ -38,7 +38,7 @@ async def semantic_search(request):
     )
 
     results = await request.app.mongo.email.find({
-        "nn_index": {
+        "doc_counter": {
             "$in": neighbors
         }
     })
@@ -48,6 +48,10 @@ async def semantic_search(request):
 @routes.get("/search/similar")
 async def similar_search(request):
     nn_index = request.rel_url.query['nn_index']
+    # TODO - only select the vector
+    vector = await request.app.mongo.email.find({
+        "doc_counter": nn_index
+    }) 
     
     # Nearest neighbors is a costly CPU task, so run it asynchronously
     # in a process pool executor (pool of separate CPUs so we don't block
@@ -57,11 +61,11 @@ async def similar_search(request):
         # AbstractEventLoop.run_in_executor does not allow for a function
         # call with arguments natively so bind arguments to the function
         # using functools.partial
-        functools.partial(ml.nn_lookup, nn_index)
+        functools.partial(ml.nn_lookup, vector)
     )
 
     results = await request.app.mongo.email.find({
-        "nn_index": {
+        "doc_counter": {
             "$in": neighbors
         }
     })

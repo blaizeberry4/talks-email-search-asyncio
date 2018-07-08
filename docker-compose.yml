@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  talks-email-search-asyncio:
+    image: talks-email-search-asyncio:local
+    ports:
+      - '14100:80'
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    tty: true
