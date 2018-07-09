@@ -63,7 +63,7 @@ class LDAModelMaker():
             self.apply = self.load_corpus_dict
             
         if database:
-            self.update_database = self.next_steps[database]
+            self.database = self.next_steps[database]
 
 
     def create_corpus_dict(self, texts):
@@ -188,10 +188,8 @@ class LDAModelMaker():
             
         """
         self.get_run_param()
-        self.lda = ldamodel.LdaModel(corpus=self.corpus, alpha='auto', id2word=self.dictionary, #num_topics=num_topics, 
-                                     **self.run_parameters)
+        self.lda = ldamodel.LdaModel(corpus=self.corpus, alpha='auto', id2word=self.dictionary, **self.run_parameters)
         lda_vis_serialized = pyLDAvis.gensim.prepare(self.lda, self.corpus, self.dictionary, sort_topics = False)
-#        pyLDAvis.save_html(lda_vis_serialized, '../../../Enron/Result/ldaModelDaRealOne.html')
         pyLDAvis.save_html(lda_vis_serialized, self.pyldavis_filepath)
         self.lda.save(self.lda_filepath)
 
