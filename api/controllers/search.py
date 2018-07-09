@@ -1,8 +1,7 @@
 from aiohttp import web
-import functools.partial
+from functools import partial
 
-import ml.semantic_search
-import ml.nn_lookup
+from ml import nn_lookup, semantic_search
 
 routes = web.RouteTableDef()
 
@@ -23,7 +22,7 @@ async def keyword_search(request):
     return web.json_response(results)
 
 @routes.post("/search/semantic")
-async def semantic_search(request):
+async def sem_search(request):
     body = await request.json()
 
     # Semantic search is a costly CPU task, so run it asynchronously
@@ -34,41 +33,43 @@ async def semantic_search(request):
         # AbstractEventLoop.run_in_executor does not allow for a function
         # call with arguments natively so bind arguments to the function
         # using functools.partial
-        functools.partial(ml.semantic_search, body.get("query"))
+        partial(semantic_search, body.get("query"))
     )
+    neighbors = neighbors.tolist()
 
-    results = await request.app.mongo.email.find({
-        "doc_counter": {
+    results = await request.app.mongodb.emaildump.find({
+        "email_counter": {
             "$in": neighbors
         }
-    })
+    }).to_list(length=len(neighbors))
 
     return web.json_response(results)
 
 @routes.get("/search/similar")
-async def similar_search(request):
-    nn_index = request.rel_url.query['nn_index']
+async def sim_search(request):
+    nn_index = int(request.rel_url.query['nn_index'])
     # TODO - only select the vector
-    vector = await request.app.mongo.email.find({
-        "doc_counter": nn_index
-    }) 
+    vector = await request.app.mongodb.emaildump.find_one({
+        "email_counter": nn_index
+    }, {"topic_vector": 1}) 
     
     # Nearest neighbors is a costly CPU task, so run it asynchronously
     # in a process pool executor (pool of separate CPUs so we don't block
     # the event loop and can process multiple requests concurrently)
-    neighbors = await request.app.loop.run_in_executor(
+    neighbors, distances = await request.app.loop.run_in_executor(
         request.app.process_executor,
         # AbstractEventLoop.run_in_executor does not allow for a function
         # call with arguments natively so bind arguments to the function
         # using functools.partial
-        functools.partial(ml.nn_lookup, vector)
+        partial(nn_lookup, vector["topic_vector"])
     )
+    neighbors = neighbors.tolist()
 
-    results = await request.app.mongo.email.find({
-        "doc_counter": {
+    results = await request.app.mongodb.emaildump.find({
+        "email_counter": {
             "$in": neighbors
         }
-    })
+    }).to_list(length=len(neighbors))
 
     return web.json_response(results)
 

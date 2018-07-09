@@ -2,11 +2,13 @@ from azure.storage.blob import BlockBlobService
 from concurrent.futures import ProcessPoolExecutor
 from gensim.corpora import Dictionary
 from gensim.models import ldamodel
+from gensim.test.utils import datapath
 from multiprocessing import cpu_count
 import nmslib
 import numpy as np
 
-import settings
+import settings.ml
+import settings.db
 
 # Constants
 DEFAULT_NUMBER_NEIGHBORS = settings.ml.DEFAULT_NUMBER_NEIGHBORS
@@ -20,18 +22,22 @@ nn_index_path = settings.ml.NN_INDEX_PATH
 
 # Pull LDA and HNSW model artifacts from Blob Storage
 blob_service.get_blob_to_path(blob_service_container, lda_model_path, lda_model_path)
+blob_service.get_blob_to_path(blob_service_container, lda_model_path + ".expElogbeta.npy", lda_model_path + ".expElogbeta.npy")
+blob_service.get_blob_to_path(blob_service_container, lda_model_path + ".state", lda_model_path + ".state")
+blob_service.get_blob_to_path(blob_service_container, lda_model_path + ".id2word", lda_model_path + ".id2word")
 blob_service.get_blob_to_path(blob_service_container, lda_dictionary_path, lda_dictionary_path)
 blob_service.get_blob_to_path(blob_service_container, nn_index_path, nn_index_path)
 
 # Instantiate models
 lda_model = ldamodel.LdaModel.load(lda_model_path)
 lda_dictionary = Dictionary().load(lda_dictionary_path)
-nn_index = nmslib.init(method = 'hnsw', space = 'cosinesimil').loadIndex(nn_index_path)
+nn_index = nmslib.init(method = 'hnsw', space = 'cosinesimil')
+nn_index.loadIndex(nn_index_path)
 
 
 def setup_ml_process_pool(app):
     # Leave a CPU for the server to run on
-    setattr(app, 'process_executor', ProcessPoolExecutor(max_workers=cpu_count() - 1))
+    app["process_executor"] = ProcessPoolExecutor(max_workers=cpu_count() - 1) 
 
 def semantic_search(query):
     docs_bow = lda_dictionary.doc2bow(query.split())

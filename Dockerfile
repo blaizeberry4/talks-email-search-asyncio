@@ -1,4 +1,4 @@
-FROM python:3.6.4-alpine
+FROM python:3.6-stretch
 MAINTAINER Blaize Berry "blaizeberry@gmail.com"
 
 
@@ -9,8 +9,8 @@ ENV APP_DIR=/app
 COPY . /app
 WORKDIR /app
 
-
-RUN pip install -r requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends openssl libblas-dev liblapack-dev
+RUN pip install --no-cache -r requirements.txt
 
 EXPOSE $APP_PORT
 

@@ -10,11 +10,12 @@ import uvloop
 from api.controllers import controllers
 from db.mongo import setup_mongo_interface
 from db.search import setup_search_interface
-import settings
+from settings.logging import config as log_config
+from settings.app import host, port
 
 
 def setup_logging(app):
-    logging.config.dictConfig(settings.logging.config)
+    logging.config.dictConfig(log_config)
 
 def setup_routes(app):
     for controller in controllers:
@@ -47,7 +48,7 @@ if __name__ == "__main__":
 
     # Setup that can be done before running the app
     setup_logging(app)
-    setup_swagger(app, swagger_from_file="swagger.json")
+    # setup_swagger(app, swagger_from_file="swagger.json")
     setup_routes(app)
     setup_cors(app)
     setup_process_pool(app)
@@ -57,4 +58,4 @@ if __name__ == "__main__":
     for deferred in [setup_search_interface, setup_mongo_interface]:
         app.on_startup.append(deferred)
     
-    web.run_app(app, host=settings.app.host, port = settings.app.port)
+    web.run_app(app, host=host, port=port)
