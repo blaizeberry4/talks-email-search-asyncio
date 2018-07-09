@@ -9,13 +9,10 @@ routes = web.RouteTableDef()
 async def keyword_search(request):
     body = await request.json()
 
-    results = await request.app.search.execute({
+    results = await request.app.search.emails.execute({
         "search": body.get("query"),
-        "filter": body.get("filter"),
         "skip": body.get("skip"),
         "top": body.get("top"),
-        "queryType": "full",
-        "select": body.get("fields"),
         "count": True
     })
 
