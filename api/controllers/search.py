@@ -16,7 +16,7 @@ async def keyword_search(request):
         "count": True
     })
 
-    return web.json_response(results)
+    return web.json_response(results["emails"])
 
 @routes.post("/search/semantic")
 async def sem_search(request):
@@ -38,9 +38,20 @@ async def sem_search(request):
         "email_counter": {
             "$in": neighbors
         }
+    }, {
+        "content": 1,
+        "sender": 1,
+        "recipient": 1,
+        "date": 1,
+        "subject": 1,
+        "email_counter": 1
     }).to_list(length=len(neighbors))
+    sorted_results = []
+    results_dict = { v["email_counter"]: v for v in results }
+    for idx in neighbors:
+        sorted_results.append(results_dict[idx])
 
-    return web.json_response(results)
+    return web.json_response(sorted_results)
 
 @routes.get("/search/similar")
 async def sim_search(request):
@@ -66,7 +77,18 @@ async def sim_search(request):
         "email_counter": {
             "$in": neighbors
         }
+    }, {
+        "content": 1,
+        "sender": 1,
+        "recipient": 1,
+        "date": 1,
+        "subject": 1,
+        "email_counter": 1
     }).to_list(length=len(neighbors))
+    sorted_results = []
+    results_dict = { v["email_counter"]: v for v in results }
+    for idx in neighbors:
+        sorted_results.append(results_dict[idx])
 
-    return web.json_response(results)
+    return web.json_response(sorted_results)
 
